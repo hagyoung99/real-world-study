@@ -18,16 +18,15 @@ public class CustomArticleRepositoryImpl implements CustomArticleRepository {
         QArticles articles = QArticles.articles;
         return queryFactory.selectFrom(articles)
                 .where(
-                    tagLike(articles, requestDto.getTag())
                 )
                 .limit(requestDto.getLimit())
                 .offset(requestDto.getOffset())
                 .fetch();
     }
 
-    private BooleanExpression tagLike(QArticles articles, String tag) {
-        return hasText(tag) ? articles.tag.contains(tag) : null;
-    }
+//    private BooleanExpression tagLike(QArticles articles, String tag) {
+//        return hasText(tag) ? articles.tag.contains(tag) : null;
+//    }
 
 //    private BooleanExpression authorEq(QArticles articles, String author) {
 //        return hasText(author) ?

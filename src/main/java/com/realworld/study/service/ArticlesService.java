@@ -1,7 +1,11 @@
 package com.realworld.study.service;
 
+import com.realworld.study.domain.ArticleTag.ArticleTag;
+import com.realworld.study.domain.ArticleTag.ArticleTagRepository;
 import com.realworld.study.domain.articles.Articles;
 import com.realworld.study.domain.articles.ArticlesRepository;
+import com.realworld.study.domain.tag.Tags;
+import com.realworld.study.domain.tag.TagsRepository;
 import com.realworld.study.web.Articles.dto.ArticleResponseDto;
 import com.realworld.study.web.Articles.dto.ArticleSaveRequestDto;
 import com.realworld.study.web.Articles.dto.ArticlesGetRequestDto;
@@ -17,10 +21,16 @@ import java.util.stream.Collectors;
 @Service
 public class ArticlesService {
     private final ArticlesRepository articlesRepository;
+    private final TagsRepository tagsRepository;
+    private final ArticleTagRepository articleTagRepository;
 
     @Transactional
     public ArticleResponseDto saveArticle(ArticleSaveRequestDto requestDto){
         Articles article = articlesRepository.save(requestDto.toEntity());
+        for(String saveTag : requestDto.getTagList()){
+            Tags tag = tagsRepository.save(new Tags(saveTag));
+            articleTagRepository.save(new ArticleTag(article, tag));
+        }
         return new ArticleResponseDto(article);
     }
 

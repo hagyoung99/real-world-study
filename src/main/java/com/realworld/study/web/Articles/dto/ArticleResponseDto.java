@@ -19,11 +19,10 @@ public class ArticleResponseDto {
     private LocalDateTime modifiedAt;
 
     public ArticleResponseDto(Articles entity) {
-        this.slug = entity.getSlug();
+        this.slug = entity.getSlug() + "-" + entity.getArticleId();
         this.title = entity.getTitle();
         this.description = entity.getDescription();
         this.body = entity.getBody();
-        this.tagList = entity.getTag().split(",");
         this.createdAt = entity.getCreatedAt();
         this.modifiedAt = entity.getCreatedAt();
     }

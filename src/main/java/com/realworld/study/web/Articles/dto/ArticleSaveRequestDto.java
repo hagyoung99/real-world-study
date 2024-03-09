@@ -39,7 +39,6 @@ public class ArticleSaveRequestDto {
                 .title(title)
                 .description(description)
                 .body(body)
-                .tag(String.join(",", tagList))
                 .build();
     }
 }
