@@ -1,6 +1,6 @@
 package com.realworld.study.domain.articles;
 
-import com.realworld.study.domain.ArticleTag.ArticleTag;
+import com.realworld.study.domain.ArticleTag.TagMapping;
 import com.realworld.study.domain.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -27,8 +27,11 @@ public class Articles extends BaseTimeEntity {
 
     private String slug;
 
-    @OneToMany(mappedBy = "articleTag")
-    private List<ArticleTag> articleTagList = new ArrayList<ArticleTag>();
+    @OneToMany(mappedBy="articles", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TagMapping> tagMappings;
+
+//    @OneToMany(mappedBy = "articleTag")
+//    private List<ArticleTag> articleTagList = new ArrayList<ArticleTag>();
 
     @Builder
     public Articles(String title, String description, String body) {
@@ -45,10 +48,15 @@ public class Articles extends BaseTimeEntity {
         this.slug = title.replaceAll("[!?@$^,. ]", "-");
     }
 
-    public void addArticleTag(ArticleTag articleTag) {
-        this.articleTagList.add(articleTag);
-        if(articleTag.getArticle() != this) {
-            articleTag.setArticle(this);
+    public void addTagMapping(List<TagMapping> tagMappings) {
+        this.tagMappings = tagMappings;
+    }
+
+    public List<String> getTags(){
+        List<String> tagList = new ArrayList<>();
+        for(TagMapping tagMapping : this.tagMappings) {
+            tagList.add(tagMapping.getTags().getTagName());
         }
+        return tagList;
     }
 }

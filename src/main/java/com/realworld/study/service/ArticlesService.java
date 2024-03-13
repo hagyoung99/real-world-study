@@ -1,7 +1,7 @@
 package com.realworld.study.service;
 
-import com.realworld.study.domain.ArticleTag.ArticleTag;
-import com.realworld.study.domain.ArticleTag.ArticleTagRepository;
+import com.realworld.study.domain.ArticleTag.TagMapping;
+import com.realworld.study.domain.ArticleTag.TagMappingRepository;
 import com.realworld.study.domain.articles.Articles;
 import com.realworld.study.domain.articles.ArticlesRepository;
 import com.realworld.study.domain.tag.Tags;
@@ -13,6 +13,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,22 +23,36 @@ import java.util.stream.Collectors;
 public class ArticlesService {
     private final ArticlesRepository articlesRepository;
     private final TagsRepository tagsRepository;
-    private final ArticleTagRepository articleTagRepository;
+    private final TagMappingRepository tagMappingRepository;
 
     @Transactional
     public ArticleResponseDto saveArticle(ArticleSaveRequestDto requestDto){
         Articles article = articlesRepository.save(requestDto.toEntity());
+        List<TagMapping> tagList = new ArrayList<>();
         for(String saveTag : requestDto.getTagList()){
-            Tags tag = tagsRepository.save(new Tags(saveTag));
-            articleTagRepository.save(new ArticleTag(article, tag));
+            Optional<Tags> findTag = tagsRepository.findByTagName(saveTag);
+            Tags tag = new Tags();
+            tag = findTag.orElseGet(() -> tagsRepository.save(new Tags(saveTag)));
+
+            TagMapping tagMapping = tagMappingRepository.save(new TagMapping(article, tag));
+            tagList.add(tagMapping);
+
         }
+        article.addTagMapping(tagList);
+
         return new ArticleResponseDto(article);
     }
 
     public ArticleResponseDto findArticleBySlug(String slug) {
-        Articles articles = articlesRepository.findBySlug(slug)
+        int index = slug.lastIndexOf("-");
+        String articleId = slug.substring(index + 1);
+        String title = slug.substring(0,index);
+        Articles articles = articlesRepository.findByArticleIdAndTitle(Long.parseLong(articleId), title)
                 .orElseThrow(() -> new IllegalArgumentException("해당 아티클이 없습니다. slug = " + slug));
-        return new ArticleResponseDto(articles);
+
+
+        ArticleResponseDto response = new ArticleResponseDto(articles);
+        return response;
     }
 
     public List<ArticleResponseDto> findArticlesByParam(ArticlesGetRequestDto requestDto){
@@ -48,19 +63,25 @@ public class ArticlesService {
 
     @Transactional
     public ArticleResponseDto updateArticle(String slug, ArticleSaveRequestDto requestDto) {
-        Articles articles = articlesRepository.findBySlug(slug)
+        int index = slug.lastIndexOf("-");
+        String articleId = slug.substring(index + 1);
+        String title = slug.substring(0,index);
+        Articles articles = articlesRepository.findByArticleIdAndTitle(Long.parseLong(articleId), title)
                 .orElseThrow(() -> new IllegalArgumentException("해당 아티클이 없습니다. slug = " + slug));
 
-        String title = Optional.ofNullable(requestDto.getTitle()).orElse(articles.getTitle());
-        String description = Optional.ofNullable(requestDto.getDescription()).orElse(articles.getDescription());
-        String body = Optional.ofNullable(requestDto.getBody()).orElse(articles.getBody());
+        String updateTitle = Optional.ofNullable(requestDto.getTitle()).orElse(articles.getTitle());
+        String updateDescription = Optional.ofNullable(requestDto.getDescription()).orElse(articles.getDescription());
+        String updateBody = Optional.ofNullable(requestDto.getBody()).orElse(articles.getBody());
 
-        articles.updateArticle(title, description, body);
+        articles.updateArticle(updateTitle, updateDescription, updateBody);
         return new ArticleResponseDto(articles);
     }
 
     @Transactional
     public void deleteArticle(String slug) {
-        articlesRepository.deleteBySlug(slug);
+        int index = slug.lastIndexOf("-");
+        String articleId = slug.substring(index + 1);
+        String title = slug.substring(0,index);
+        articlesRepository.deleteByArticleIdAndTitle(Long.parseLong(articleId), title);
     }
 }

@@ -1,7 +1,8 @@
 package com.realworld.study.domain.tag;
 
-import com.realworld.study.domain.ArticleTag.ArticleTag;
+import com.realworld.study.domain.ArticleTag.TagMapping;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -19,17 +20,14 @@ public class Tags {
 
     private String tagName;
 
-    @OneToMany(mappedBy = "articleTag")
-    private List<ArticleTag> articleTagList = new ArrayList<ArticleTag>();
-
-    public Tags(String tagName){
+    @OneToMany(mappedBy = "tags", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TagMapping> tagMappings;
+    @Builder
+    public Tags(String tagName) {
         this.tagName = tagName;
     }
 
-    public void addArticleTag(ArticleTag articleTag) {
-        this.articleTagList.add(articleTag);
-        if(articleTag.getTag() != this) {
-            articleTag.setTag(this);
-        }
+    public void addTagMapping(List<TagMapping> tagMappings) {
+        this.tagMappings = tagMappings;
     }
 }

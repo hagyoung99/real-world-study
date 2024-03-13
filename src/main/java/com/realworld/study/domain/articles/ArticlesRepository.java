@@ -8,4 +8,8 @@ public interface ArticlesRepository extends JpaRepository<Articles, Long>, Custo
     Optional<Articles> findBySlug(String slug);
 
     void deleteBySlug(String slug);
+
+    Optional<Articles> findByArticleIdAndTitle(Long articleId, String title);
+
+    void deleteByArticleIdAndTitle(Long articleId, String title);
 }
